@@ -74,6 +74,45 @@ export interface WeatherData {
   isFallback?: boolean;
 }
 
+export interface StationWeatherPoint {
+  id: string;
+  name: string;
+  zone: string;
+  latitude: number;
+  longitude: number;
+  temperature: number;
+  apparentTemperature: number;
+  humidity: number;
+  windSpeed: number;
+  precipitationProbability: number;
+  conditionText: string;
+  weatherCode: number;
+  conditionIcon: string;
+  riskScore: number;
+  riskLevel: RiskLevel;
+  colorGrade: {
+    hex: string;
+    bgClass: string;
+    textClass: string;
+    label: string;
+  };
+}
+
+export interface DistrictMapData {
+  district: string;
+  state: string;
+  updatedAt: string;
+  provider: string;
+  stations: StationWeatherPoint[];
+  temperatureRange: {
+    min: number;
+    max: number;
+    mean: number;
+  };
+  warmestStation: string;
+  coolestStation: string;
+}
+
 export type RiskLevel = 'low' | 'moderate' | 'high' | 'very_high';
 
 export interface LocalRiskIndex {

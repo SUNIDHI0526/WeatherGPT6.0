@@ -4,6 +4,7 @@ import { WeatherData, LocalRiskIndex, AlertData } from '../../types/weather';
 import { WeatherCard } from '../cards/WeatherCard';
 import { RiskCard } from '../cards/RiskCard';
 import { ForecastCard } from '../cards/ForecastCard';
+import { NagpurDistrictWeatherMap } from '../cards/NagpurDistrictWeatherMap';
 
 interface HomeScreenProps {
   weatherData: WeatherData | null;
@@ -111,6 +112,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           <MessageSquareQuote className="w-4 h-4 text-sky-400" />
         </button>
       </div>
+
+      {/* Nagpur District Weather & Temperature Map Section */}
+      <NagpurDistrictWeatherMap
+        onAskAboutStation={(prompt) => onNavigateToChat(prompt)}
+        onNavigateToCorridor={onNavigateToCorridor}
+      />
 
       {/* Local Risk Index Card */}
       {riskIndex && (

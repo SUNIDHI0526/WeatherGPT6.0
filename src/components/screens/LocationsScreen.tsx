@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Compass, Navigation, MapPin, Clock, CloudRain, AlertTriangle, ArrowRight, RefreshCw, Car } from 'lucide-react';
+import { Compass, Navigation, MapPin, Clock, CloudRain, AlertTriangle, ArrowRight, RefreshCw, Car, Map as MapIcon } from 'lucide-react';
 import { RouteWeather } from '../../types/weather';
 import { RouteCard } from '../cards/RouteCard';
+import { NagpurDistrictWeatherMap } from '../cards/NagpurDistrictWeatherMap';
 
 interface LocationsScreenProps {
   onComputeRoute: (from: string, to: string) => Promise<RouteWeather>;
@@ -12,6 +13,7 @@ export const LocationsScreen: React.FC<LocationsScreenProps> = ({
   onComputeRoute,
   onAskChatAboutRoute
 }) => {
+  const [activeTab, setActiveTab] = useState<'map' | 'corridor'>('map');
   const [fromLoc, setFromLoc] = useState('nagpur');
   const [toLoc, setToLoc] = useState('kamptee');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,22 +41,83 @@ export const LocationsScreen: React.FC<LocationsScreenProps> = ({
 
   return (
     <div className="space-y-4 pb-20 max-w-xl mx-auto">
-      {/* Header */}
-      <div className="bg-sky-50/70 border border-sky-100 rounded-2xl p-4">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center">
-            <Compass className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-slate-900 font-['Outfit']">
-              Nagpur Route Corridor Weather
-            </h2>
-            <p className="text-xs text-slate-600">
-              Real-time route weather intelligence powered by OSRM + Open-Meteo
-            </p>
+      {/* Top Segmented Navigation Tab */}
+      <div className="flex bg-slate-200/70 p-1 rounded-2xl border border-slate-200/80">
+        <button
+          onClick={() => setActiveTab('map')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'map'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <MapIcon className="w-4 h-4 text-sky-600" />
+          <span>District Weather Map</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('corridor')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            activeTab === 'corridor'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Car className="w-4 h-4 text-indigo-600" />
+          <span>Route Corridor Transit</span>
+        </button>
+      </div>
+
+      {activeTab === 'map' ? (
+        <div className="space-y-4">
+          <NagpurDistrictWeatherMap
+            onAskAboutStation={(prompt) => onAskChatAboutRoute('Nagpur', prompt)}
+            onNavigateToCorridor={() => setActiveTab('corridor')}
+          />
+
+          {/* Nagpur Sub-District Locations Guide */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-xs">
+            <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <MapPin className="w-4 h-4 text-slate-500" />
+              <span>Covered Synoptic Stations in Nagpur District</span>
+            </h3>
+            <div className="space-y-2">
+              {nagpurSubLocations.map((loc) => (
+                <div
+                  key={loc.id}
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs"
+                >
+                  <div>
+                    <p className="font-bold text-slate-900">{loc.name}</p>
+                    <p className="text-[10px] text-slate-400">
+                      {loc.zone} • {loc.lat.toFixed(4)}°N, {loc.lon.toFixed(4)}°E
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-600">
+                    Live Telemetry
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="bg-sky-50/70 border border-sky-100 rounded-2xl p-4">
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center">
+                <Compass className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-slate-900 font-['Outfit']">
+                  Nagpur Route Corridor Weather
+                </h2>
+                <p className="text-xs text-slate-600">
+                  Real-time route weather intelligence powered by OSRM + Open-Meteo
+                </p>
+              </div>
+            </div>
+          </div>
 
       {/* Corridor Route Calculator Form */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.03)] p-4 space-y-3">
@@ -161,5 +224,7 @@ export const LocationsScreen: React.FC<LocationsScreenProps> = ({
         </p>
       </div>
     </div>
-  );
+  )}
+</div>
+);
 };

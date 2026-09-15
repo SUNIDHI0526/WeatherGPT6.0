@@ -63,6 +63,17 @@ app.get('/api/weather/forecast', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/weather/map', async (req: Request, res: Response) => {
+  try {
+    const demo = req.query.demo === 'true';
+    const mapData = await weatherService.getDistrictMapData(demo);
+    res.json({ success: true, mapData });
+  } catch (error: any) {
+    console.error('[API /api/weather/map] Error fetching district map data:', error.message || error);
+    res.status(500).json({ success: false, error: error.message || 'Error fetching map data' });
+  }
+});
+
 // ----------------------------------------------------
 // 2. Alert Endpoints (Explain My Alert Innovation)
 // ----------------------------------------------------

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, MessageSquareQuote, Bell, Compass, Settings } from 'lucide-react';
+import { Home, MessageSquareQuote, Bell, Map as MapIcon, Settings } from 'lucide-react';
 
 export type TabType = 'home' | 'chat' | 'alerts' | 'locations' | 'settings';
 
@@ -18,7 +18,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     { id: 'home' as TabType, label: 'Home', icon: Home },
     { id: 'chat' as TabType, label: 'Chat', icon: MessageSquareQuote, isPrimary: true },
     { id: 'alerts' as TabType, label: 'Alerts', icon: Bell, badge: unreadAlertCount },
-    { id: 'locations' as TabType, label: 'Corridor', icon: Compass },
+    { id: 'locations' as TabType, label: 'Weather Map', icon: MapIcon },
     { id: 'settings' as TabType, label: 'Settings', icon: Settings },
   ];
 
