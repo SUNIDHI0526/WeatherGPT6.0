@@ -236,33 +236,46 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       <div className="bg-slate-50 rounded-2xl border border-slate-200/90 p-4 space-y-2.5">
         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
           <Database className="w-4 h-4 text-slate-600" />
-          <span>System Subsystems & API Adapters</span>
+          <span>System Subsystems & Optional Adapters</span>
         </h3>
+        <p className="text-[11px] text-slate-500">
+          Built for zero-dependency portability. All third-party services gracefully fall back to local or open zero-key alternatives.
+        </p>
 
         <div className="space-y-1.5 text-xs text-slate-600">
           <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
-            <span className="font-semibold text-slate-800">Primary Weather Engine:</span>
-            <span className="font-mono text-emerald-600 font-bold">Open-Meteo High-Resolution (Active)</span>
+            <span className="font-semibold text-slate-800">Primary Weather Provider:</span>
+            <span className="font-mono text-emerald-700 font-bold">Open-Meteo (Active • No API Key)</span>
           </div>
 
           <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
-            <span className="font-semibold text-slate-800">WMO WIS2 Compatibility:</span>
-            <span className="font-mono text-blue-600 font-bold">Standard Schema Adapter Ready</span>
+            <span className="font-semibold text-slate-800">Alert Engine:</span>
+            <span className="font-mono text-amber-700 font-bold">DEMO DATA Active (SACHET Optional)</span>
           </div>
 
           <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
-            <span className="font-semibold text-slate-800">AI Intelligence:</span>
-            <span className="font-mono text-indigo-600 font-bold">Gemini 3.8 Flash + Factual Guardrails</span>
+            <span className="font-semibold text-slate-800">Local Risk Index:</span>
+            <span className="font-mono text-emerald-700 font-bold">Open-Meteo Derived Algorithm</span>
           </div>
 
           <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
-            <span className="font-semibold text-slate-800">National Language Mission:</span>
-            <span className="font-mono text-slate-700 font-bold">Bhashini Adapter + Web Speech API</span>
+            <span className="font-semibold text-slate-800">Voice Recognition & TTS:</span>
+            <span className="font-mono text-sky-700 font-bold">Native Web Speech API (Bhashini Optional)</span>
           </div>
 
           <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
-            <span className="font-semibold text-slate-800">Corridor Routing:</span>
-            <span className="font-mono text-slate-700 font-bold">OSRM Highway Weather Interpolation</span>
+            <span className="font-semibold text-slate-800">SMS Gateway:</span>
+            <span className="font-mono text-slate-700 font-bold">Simulated Terminal (Carrier Optional)</span>
+          </div>
+
+          <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
+            <span className="font-semibold text-slate-800">AI Conversational Chatbot:</span>
+            <span className="font-mono text-indigo-700 font-bold">GEMINI_API_KEY Only Required Secret</span>
+          </div>
+
+          <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-100">
+            <span className="font-semibold text-slate-800">WIS2 / WMO / RapidAPI:</span>
+            <span className="font-mono text-slate-600 font-bold">Optional (Auto-Fallback to Open-Meteo)</span>
           </div>
         </div>
       </div>

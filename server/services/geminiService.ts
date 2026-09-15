@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { isConfiguredValue } from '../utils/configUtils';
 import { WeatherData, AlertData, LocalRiskIndex, RouteWeather, PersonalAdvice, UserProfileType } from '../../src/types/weather';
 import { ParsedQuery } from './languageService';
 
@@ -27,16 +28,25 @@ export interface ChatResponsePayload {
 
 let aiClient: GoogleGenAI | null = null;
 
+export function isGeminiConfigured(): boolean {
+  return isConfiguredValue(process.env.GEMINI_API_KEY);
+}
+
 function getAiClient(): GoogleGenAI | null {
-  if (!aiClient && process.env.GEMINI_API_KEY) {
-    aiClient = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build'
+  if (!aiClient && isGeminiConfigured()) {
+    try {
+      aiClient = new GoogleGenAI({
+        apiKey: (process.env.GEMINI_API_KEY || '').trim(),
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build'
+          }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.warn('Unable to initialize GoogleGenAI client, falling back to local grounded engine:', err);
+      aiClient = null;
+    }
   }
   return aiClient;
 }

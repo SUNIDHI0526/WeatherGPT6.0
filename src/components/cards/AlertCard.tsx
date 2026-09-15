@@ -61,11 +61,11 @@ export const AlertCard: React.FC<AlertCardProps> = ({ alert, initialExpanded = t
         </div>
         <div>
           {alert.isDemo ? (
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300/80">
-              DEMO ALERT — Prototype Data
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300/90 shadow-2xs">
+              DEMO DATA (Official SACHET Feed Inactive)
             </span>
           ) : (
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-rose-600 text-white shadow-xs">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-md bg-rose-600 text-white shadow-2xs">
               OFFICIAL SACHET/IMD ALERT
             </span>
           )}

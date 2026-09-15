@@ -20,6 +20,7 @@ import {
   LanguageCode,
   RouteWeather
 } from './types/weather';
+import { FALLBACK_NAGPUR_WEATHER, FALLBACK_LOCAL_RISK, FALLBACK_DEMO_ALERTS } from './data/fallbackData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('home');
@@ -30,9 +31,9 @@ export default function App() {
   const [isWelcomeOpen, setIsWelcomeOpen] = useState<boolean>(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
 
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  const [riskIndex, setRiskIndex] = useState<LocalRiskIndex | null>(null);
-  const [alerts, setAlerts] = useState<AlertData[]>([]);
+  const [weatherData, setWeatherData] = useState<WeatherData>(FALLBACK_NAGPUR_WEATHER);
+  const [riskIndex, setRiskIndex] = useState<LocalRiskIndex>(FALLBACK_LOCAL_RISK);
+  const [alerts, setAlerts] = useState<AlertData[]>(FALLBACK_DEMO_ALERTS);
   const [isLoadingWeather, setIsLoadingWeather] = useState<boolean>(false);
 
   const [notification, setNotification] = useState<{

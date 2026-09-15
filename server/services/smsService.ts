@@ -2,6 +2,7 @@ import { parseQuery } from './languageService';
 import { weatherService } from './weatherService';
 import { calculateLocalRisk } from './riskEngine';
 import { generateGroundedResponse } from './geminiService';
+import { isConfiguredValue } from '../utils/configUtils';
 
 export interface SmsMessage {
   id: string;
@@ -13,18 +14,23 @@ export interface SmsMessage {
 }
 
 export class SmsService {
-  private gatewayKey = process.env.SMS_GATEWAY_API_KEY || '';
+  private getGatewayKey(): string {
+    return isConfiguredValue(process.env.SMS_GATEWAY_API_KEY) ? (process.env.SMS_GATEWAY_API_KEY as string).trim() : '';
+  }
+
   private history: SmsMessage[] = [];
 
   isConfigured(): boolean {
-    return Boolean(this.gatewayKey);
+    return Boolean(this.getGatewayKey());
   }
 
   getStatus() {
+    const isConfig = this.isConfigured();
     return {
-      provider: 'SMS Gateway Abstraction (CDAC / Indian Telco Carrier Pipeline)',
-      configured: this.isConfigured(),
-      fallbackMode: 'Simulated In-App Terminal',
+      provider: 'SMS Gateway Abstraction (CDAC / Telco Carrier - Optional)',
+      configured: isConfig,
+      fallbackMode: 'Simulated In-App Terminal (Zero external SMS credentials required)',
+      status: isConfig ? 'Carrier API Connected' : 'Optional Service Inactive (In-App Terminal Simulation Active)',
       description: 'Allows farmers and feature phone users to query weather via plain SMS without internet'
     };
   }

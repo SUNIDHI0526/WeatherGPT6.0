@@ -46,8 +46,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             <div>
               <p className="text-xs font-bold text-amber-950 flex items-center gap-1">
                 <span>{activeAlert.title}</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-900">
-                  {activeAlert.isDemo ? 'DEMO ADVISORY' : 'IMD ALERT'}
+                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-200/80 text-amber-900 border border-amber-300/80">
+                  {activeAlert.isDemo ? 'DEMO DATA' : 'IMD ALERT'}
                 </span>
               </p>
               <p className="text-[11px] text-amber-800 line-clamp-1 mt-0.5">

@@ -8,7 +8,7 @@ import { calculateLocalRisk } from './server/services/riskEngine';
 import { alertService } from './server/services/alertService';
 import { calculateRouteCorridorWeather } from './server/services/routeService';
 import { parseQuery, detectLanguage } from './server/services/languageService';
-import { generateGroundedResponse } from './server/services/geminiService';
+import { generateGroundedResponse, isGeminiConfigured } from './server/services/geminiService';
 import { bhashiniService } from './server/services/voiceService';
 import { smsService } from './server/services/smsService';
 import { UserProfileType } from './src/types/weather';
@@ -268,8 +268,12 @@ app.get('/api/system/status', (req: Request, res: Response) => {
     sihProblemStatement: '26068: WeatherGPT: Conversational AI for Weather Forecasting, Alerts, and Climate Information',
     targetLocation: 'Nagpur District, Maharashtra, India',
     services: {
-      openMeteo: { status: 'Active (Primary)', latencyMs: 140 },
-      geminiAI: { status: process.env.GEMINI_API_KEY ? 'Configured (Gemini 3.8 Flash)' : 'Offline / Intelligent Fallback Engine Active' },
+      openMeteo: { status: 'Active (Primary Weather Provider • Zero API Key Required)', latencyMs: 140 },
+      geminiAI: { status: isGeminiConfigured() ? 'Configured (Gemini 3.8 Flash)' : 'Active (Local Grounded Intelligence Fallback Active)' },
+      sachetCAP: {
+        status: alertService.isOfficialFeedConfigured() ? 'Official SACHET CAP Feed Connected' : 'DEMO DATA Active (Simulated Prototype Alert Feed)',
+        isDemo: !alertService.isOfficialFeedConfigured()
+      },
       bhashini: bhashiniService.getStatus(),
       wis2_wmo: weatherService.wis2.getStatus(),
       smsGateway: smsService.getStatus(),
@@ -301,4 +305,10 @@ async function startServer() {
   });
 }
 
-startServer();
+// Export app for Vercel serverless functions / programmatic usage
+export default app;
+
+// In standalone/container environments (Cloud Run, local dev), start HTTP server
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  startServer();
+}

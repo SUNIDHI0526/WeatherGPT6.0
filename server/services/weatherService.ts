@@ -1,4 +1,5 @@
 import { WeatherData, CurrentWeather, HourlyPoint, DailyPoint, LocationInfo } from '../../src/types/weather';
+import { isConfiguredValue } from '../utils/configUtils';
 
 export const NAGPUR_LOCATIONS: Record<string, LocationInfo> = {
   nagpur: {
@@ -110,10 +111,18 @@ export interface IWeatherProvider {
 
 export class OpenMeteoProvider implements IWeatherProvider {
   name = 'Open-Meteo' as const;
-  private baseUrl = process.env.OPEN_METEO_BASE_URL || 'https://api.open-meteo.com/v1';
+
+  private getForecastEndpoint(): string {
+    const raw = isConfiguredValue(process.env.OPEN_METEO_BASE_URL)
+      ? (process.env.OPEN_METEO_BASE_URL as string).trim().replace(/\/+$/, '')
+      : 'https://api.open-meteo.com/v1';
+    // Handle cases where OPEN_METEO_BASE_URL already includes /forecast
+    return raw.endsWith('/forecast') ? raw : `${raw}/forecast`;
+  }
 
   async getWeatherData(lat: number, lon: number, locationMeta: LocationInfo): Promise<WeatherData> {
-    const url = `${this.baseUrl}/forecast?latitude=${lat}&longitude=${lon}` +
+    const endpoint = this.getForecastEndpoint();
+    const url = `${endpoint}?latitude=${lat}&longitude=${lon}` +
       `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m` +
       `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m` +
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset` +
@@ -256,37 +265,54 @@ export class DemoWeatherProvider implements IWeatherProvider {
   }
 }
 
-// RapidAPI Provider Abstraction
+// RapidAPI Provider Abstraction (Optional)
 export class RapidAPIProvider implements IWeatherProvider {
   name = 'RapidAPI' as const;
-  private apiKey = process.env.RAPIDAPI_KEY || '';
+
+  private getApiKey(): string {
+    return isConfiguredValue(process.env.RAPIDAPI_KEY) ? (process.env.RAPIDAPI_KEY as string).trim() : '';
+  }
+
+  isConfigured(): boolean {
+    return Boolean(this.getApiKey());
+  }
 
   async getWeatherData(lat: number, lon: number, locationMeta: LocationInfo): Promise<WeatherData> {
-    if (!this.apiKey) {
-      // Graceful fallback to Open-Meteo or Demo
+    const key = this.getApiKey();
+    if (!key) {
+      // Graceful fallback to Open-Meteo primary
       const fallback = new OpenMeteoProvider();
       return fallback.getWeatherData(lat, lon, locationMeta);
     }
-    // Real RapidAPI weather endpoint if configured
+    // If valid RapidAPI key provided, fetch or route through Open-Meteo adapter
     return new OpenMeteoProvider().getWeatherData(lat, lon, locationMeta);
   }
 }
 
-// WIS2.0 / WMO Real-Time MQTT Architecture Abstraction
+// WIS2.0 / WMO Real-Time MQTT Architecture Abstraction (Optional)
 export class WIS2Service {
-  private brokerUrl = process.env.WIS2_BROKER_URL || '';
+  private getBrokerUrl(): string {
+    const raw = process.env.WIS2_BROKER_URL;
+    if (!isConfiguredValue(raw)) return '';
+    const url = (raw || '').trim();
+    if (!url.startsWith('mqtt://') && !url.startsWith('mqtts://') && !url.startsWith('http://') && !url.startsWith('https://')) {
+      return '';
+    }
+    return url;
+  }
 
   isConnected(): boolean {
-    return Boolean(this.brokerUrl);
+    return Boolean(this.getBrokerUrl());
   }
 
   getStatus() {
+    const url = this.getBrokerUrl();
     return {
       protocol: 'MQTT / WIS 2.0 Notification Specification',
-      brokerConfigured: Boolean(this.brokerUrl),
+      brokerConfigured: Boolean(url),
       stationId: 'VOMM/42867-Nagpur',
-      status: this.brokerUrl ? 'Subscribed to topic data/core/weather/india/nagpur/#' : 'Fallback Active (Open-Meteo Primary)',
-      fallbackActive: true
+      status: url ? 'Subscribed to topic data/core/weather/india/nagpur/#' : 'Optional Broker Inactive (Open-Meteo Active)',
+      fallbackActive: !url
     };
   }
 }
