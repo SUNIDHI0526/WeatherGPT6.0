@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
-import { createServer as createViteServer } from 'vite';
 
 import { weatherService, NAGPUR_LOCATIONS } from './server/services/weatherService';
 import { calculateLocalRisk } from './server/services/riskEngine';
@@ -47,6 +46,7 @@ app.get('/api/weather/forecast', async (req: Request, res: Response) => {
     const location = (req.query.location as string) || 'nagpur';
     const demo = req.query.demo === 'true';
     const data = await weatherService.getWeather(location, demo);
+    console.log(`[API /api/weather/forecast] Returning live forecast for ${data.location.name} (provider: ${data.provider})`);
     res.json({
       success: true,
       location: data.location,
@@ -57,8 +57,9 @@ app.get('/api/weather/forecast', async (req: Request, res: Response) => {
       timestamp: data.timestamp
     });
   } catch (error: any) {
-    console.error('Error fetching weather forecast:', error);
-    res.status(500).json({ success: false, error: error.message });
+    console.error('[API /api/weather/forecast] Error fetching weather forecast:', error.message || error);
+    if (error.stack) console.error(error.stack);
+    res.status(500).json({ success: false, error: error.message || 'Error fetching weather forecast' });
   }
 });
 
@@ -180,6 +181,7 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       userProfile: profile as UserProfileType
     });
 
+    console.log(`[API /api/chat] Successfully answered query in ${groundedResult.detectedLanguage}`);
     res.json({
       success: true,
       query,
@@ -191,10 +193,11 @@ app.post('/api/chat', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {
-    console.error('Chat endpoint error:', error);
+    console.error('[API /api/chat] Chat endpoint error:', error.message || error);
+    if (error.stack) console.error(error.stack);
     res.status(500).json({
       success: false,
-      error: "I'm temporarily unable to retrieve the latest weather data. Please try again or switch to Demo Mode.",
+      error: error.message || "Unable to retrieve meteorological data or generate grounded response",
       fallbackActive: true
     });
   }
@@ -287,6 +290,7 @@ app.get('/api/system/status', (req: Request, res: Response) => {
 // ----------------------------------------------------
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',

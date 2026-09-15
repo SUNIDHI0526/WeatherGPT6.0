@@ -113,11 +113,25 @@ export class OpenMeteoProvider implements IWeatherProvider {
   name = 'Open-Meteo' as const;
 
   private getForecastEndpoint(): string {
-    const raw = isConfiguredValue(process.env.OPEN_METEO_BASE_URL)
-      ? (process.env.OPEN_METEO_BASE_URL as string).trim().replace(/\/+$/, '')
-      : 'https://api.open-meteo.com/v1';
-    // Handle cases where OPEN_METEO_BASE_URL already includes /forecast
-    return raw.endsWith('/forecast') ? raw : `${raw}/forecast`;
+    const rawEnv = process.env.OPEN_METEO_BASE_URL;
+    if (!isConfiguredValue(rawEnv)) {
+      return 'https://api.open-meteo.com/v1/forecast';
+    }
+    // Remove surrounding quotes, whitespace, and trailing slashes
+    let cleaned = (rawEnv as string).trim().replace(/^["']+|["']+$/g, '').trim().replace(/\/+$/, '');
+    if (!cleaned.startsWith('http://') && !cleaned.startsWith('https://')) {
+      return 'https://api.open-meteo.com/v1/forecast';
+    }
+    if (cleaned.endsWith('/forecast')) {
+      return cleaned;
+    }
+    if (cleaned.endsWith('/v1')) {
+      return `${cleaned}/forecast`;
+    }
+    if (cleaned === 'https://api.open-meteo.com' || cleaned === 'http://api.open-meteo.com') {
+      return 'https://api.open-meteo.com/v1/forecast';
+    }
+    return `${cleaned}/forecast`;
   }
 
   async getWeatherData(lat: number, lon: number, locationMeta: LocationInfo): Promise<WeatherData> {
@@ -128,9 +142,25 @@ export class OpenMeteoProvider implements IWeatherProvider {
       `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset` +
       `&timezone=Asia%2FKolkata`;
 
-    const res = await fetch(url);
+    console.log(`[OpenMeteoProvider] Fetching live weather: ${url}`);
+
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'WeatherGPT-Nagpur/1.0'
+        }
+      });
+    } catch (networkError: any) {
+      console.error(`[OpenMeteoProvider] Network request failed for ${url}:`, networkError);
+      throw new Error(`Open-Meteo network request failed: ${networkError.message || networkError}`);
+    }
+
     if (!res.ok) {
-      throw new Error(`Open-Meteo API returned HTTP ${res.status}`);
+      const errorBody = await res.text().catch(() => '');
+      console.error(`[OpenMeteoProvider] Failed with HTTP ${res.status} ${res.statusText}. URL: ${url}. Response body: ${errorBody}`);
+      throw new Error(`Open-Meteo API returned HTTP ${res.status} (${res.statusText}): ${errorBody}`);
     }
     const raw = await res.json();
 
@@ -341,9 +371,12 @@ class WeatherService {
       const liveData = await this.primaryProvider.getWeatherData(locMeta.latitude, locMeta.longitude, locMeta);
       cache.set(cacheKey, { data: liveData, expiresAt: Date.now() + CACHE_TTL_MS });
       return liveData;
-    } catch (err) {
-      console.warn('Primary weather provider failed, falling back to demo provider:', err);
+    } catch (err: any) {
+      console.error(`[WeatherService] Primary weather provider (${this.primaryProvider.name}) failed for "${locationKey}":`, err.message || err);
+      if (err.stack) console.error(err.stack);
       const fallbackData = await this.demoProvider.getWeatherData(locMeta.latitude, locMeta.longitude, locMeta);
+      (fallbackData as any).isFallback = true;
+      (fallbackData as any).fallbackReason = err.message || 'Primary provider error';
       cache.set(cacheKey, { data: fallbackData, expiresAt: Date.now() + 60 * 1000 });
       return fallbackData;
     }

@@ -69,13 +69,21 @@ export default function App() {
     try {
       // Current weather & forecast
       const weatherRes = await fetch(`/api/weather/forecast?location=nagpur&demo=${demo}`);
+      if (!weatherRes.ok) {
+        console.error(`[Frontend] /api/weather/forecast returned HTTP ${weatherRes.status}: ${weatherRes.statusText}`);
+      }
       const weatherJson = await weatherRes.json();
       if (weatherJson.success) {
         setWeatherData(weatherJson);
+      } else {
+        console.error('[Frontend] /api/weather/forecast returned error:', weatherJson.error);
       }
 
       // Local Risk Index
       const riskRes = await fetch(`/api/risk?location=nagpur&demo=${demo}`);
+      if (!riskRes.ok) {
+        console.error(`[Frontend] /api/risk returned HTTP ${riskRes.status}: ${riskRes.statusText}`);
+      }
       const riskJson = await riskRes.json();
       if (riskJson.success) {
         setRiskIndex(riskJson.risk);
@@ -83,12 +91,15 @@ export default function App() {
 
       // Alerts feed
       const alertsRes = await fetch('/api/alerts?district=Nagpur');
+      if (!alertsRes.ok) {
+        console.error(`[Frontend] /api/alerts returned HTTP ${alertsRes.status}: ${alertsRes.statusText}`);
+      }
       const alertsJson = await alertsRes.json();
       if (alertsJson.success && alertsJson.alerts) {
         setAlerts(alertsJson.alerts);
       }
     } catch (err) {
-      console.warn('Backend API connection warning, using fallback telemetry:', err);
+      console.error('[Frontend] Backend API connection warning, check server logs:', err);
     } finally {
       setIsLoadingWeather(false);
     }
@@ -162,10 +173,12 @@ export default function App() {
         throw new Error(data.error || 'Unable to generate grounded response');
       }
     } catch (err: any) {
+      console.error('[Frontend Chat] Error in message flow:', err);
+      const serverError = err?.message && !err.message.includes('object') ? ` (${err.message})` : '';
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'bot',
-        text: '⚠️ I had a temporary issue reaching the live meteorological server. Please verify your connection or switch to Demo Mode in Settings.',
+        text: `⚠️ I had a temporary issue reaching the live meteorological server${serverError}. Please verify your connection or switch to Demo Mode in Settings.`,
         timestamp: new Date().toISOString(),
         sources: ['WeatherGPT System Fail-Safe']
       };
